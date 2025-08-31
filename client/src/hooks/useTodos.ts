@@ -1,56 +1,64 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Todo } from '../types/Todo';
-import { loadTodos, saveTodos } from '../utils/storage';
+import { useCallback, useEffect, useState } from "react";
+import { Todo } from "../types/Todo";
+
+const API_URL = "https://localhost:7290/todos"; // Adjust port if needed
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
 
   useEffect(() => {
-    const loadedTodos = loadTodos();
-    setTodos(loadedTodos);
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then(setTodos);
   }, []);
 
-  useEffect(() => {
-    saveTodos(todos);
-  }, [todos]);
-
-  const addTodo = useCallback((text: string) => {
-    const newTodo: Todo = {
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      completed: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    setTodos(prev => [newTodo, ...prev]);
+  const addTodo = useCallback(async (text: string) => {
+    const newTodo = { text: text.trim(), completed: false };
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTodo),
+    });
+    const created = await res.json();
+    setTodos((prev) => [created, ...prev]);
   }, []);
 
-  const toggleTodo = useCallback((id: string) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === id 
-        ? { ...todo, completed: !todo.completed, updatedAt: new Date() }
-        : todo
-    ));
+  const toggleTodo = useCallback(
+    async (id: string) => {
+      const todo = todos.find((t) => t.id === id);
+      if (!todo) return;
+      const updated = { ...todo, completed: !todo.completed };
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      const result = await res.json();
+      setTodos((prev) => prev.map((t) => (t.id === id ? result : t)));
+    },
+    [todos]
+  );
+
+  const updateTodo = useCallback(
+    async (id: string, text: string) => {
+      const todo = todos.find((t) => t.id === id);
+      if (!todo) return;
+      const updated = { ...todo, text: text.trim() };
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+      const result = await res.json();
+      setTodos((prev) => prev.map((t) => (t.id === id ? result : t)));
+    },
+    [todos]
+  );
+
+  const deleteTodo = useCallback(async (id: string) => {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    setTodos((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const updateTodo = useCallback((id: string, text: string) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === id 
-        ? { ...todo, text: text.trim(), updatedAt: new Date() }
-        : todo
-    ));
-  }, []);
-
-  const deleteTodo = useCallback((id: string) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
-  }, []);
-
-  return {
-    todos,
-    addTodo,
-    toggleTodo,
-    updateTodo,
-    deleteTodo,
-  };
+  return { todos, addTodo, toggleTodo, updateTodo, deleteTodo };
 };

@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState } from "react";
+import { Plus } from "lucide-react";
 
 interface TodoFormProps {
   onAddTodo: (text: string) => void;
 }
 
 export const TodoForm: React.FC<TodoFormProps> = ({ onAddTodo }) => {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (text.trim()) {
       onAddTodo(text);
-      setText('');
+      setText("");
     }
   };
 
@@ -24,7 +24,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({ onAddTodo }) => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="What needs to be done?"
-          className="w-full px-16 py-4 text-lg border-2 border-gray-200 rounded-xl 
+          className="w-full pl-4 pr-16 py-4 text-lg border-2 border-gray-200 rounded-xl 
                    focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 
                    transition-all duration-200 outline-none
                    placeholder-gray-400 bg-white shadow-sm"

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Todo } from "../types/Todo";
 
-const API_URL = "https://localhost:7290/todos"; // Adjust port if needed
+const API_URL = "https://localhost:7290/todos";
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
